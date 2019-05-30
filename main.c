@@ -50,6 +50,7 @@ int main(void)
 		clearPlayfield();
 		renderSnake();
 		outputPlayfield();
+		while(getDPad() != INVALID);
 		while(getDPad() == INVALID);
 	
 		while (1) 

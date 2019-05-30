@@ -21,7 +21,7 @@ uint8_t curFoodXPos = 0;
 uint8_t curFoodYPos = 0;
 uint8_t foodEaten = 1;
 unsigned int curSnakeLength = INITIAL_SNAKE_LENGTH;
-int curInterval = 500;
+int curInterval = START_INTERVAL;
 t_direction newDirection = INVALID;
 t_direction curDirection = INVALID;
 t_direction lastDirection = INVALID;
@@ -82,7 +82,7 @@ void endGame() {
 	outputPlayfield();
 	_delay_ms(1000);
 	clearPlayfield();
-	drawNumber(&playfield, 0, 0, curSnakeLength, 1);
+	drawNumber(&playfield, 0, 0, curSnakeLength - INITIAL_SNAKE_LENGTH, 1);
 	outputPlayfield();
 }
 
@@ -115,7 +115,7 @@ void resetSnake() {
 	curXPos = 0;
 	curYPos = 0;
 	curSnakeLength = INITIAL_SNAKE_LENGTH;
-	curInterval = 500;
+	curInterval = START_INTERVAL;
 	
 	// Clear the vertex buffer
 	memset(snakeVertices, 255, NUM_VERTICES*2);
@@ -253,8 +253,8 @@ t_collisionType advanceSnake() {
 
 void feedSnake(uint8_t amount) {
 	curSnakeLength += amount;
-	curInterval = 500 - (curSnakeLength / 10) * 50;
-	if(curInterval < 100) curInterval = 100;
+	curInterval = START_INTERVAL - (curSnakeLength / BLOCKS_PER_SPEEDUP) * SPEEDUP_FACTOR;
+	if(curInterval < MIN_INTERVAL) curInterval = MIN_INTERVAL;
 }
 
 unsigned int getSnakeDistance(int x0, int y0, int x1, int y1) {

@@ -13,6 +13,10 @@
 
 #define NUM_VERTICES 256
 #define INITIAL_SNAKE_LENGTH 5
+#define START_INTERVAL 250
+#define MIN_INTERVAL 50
+#define BLOCKS_PER_SPEEDUP 5
+#define SPEEDUP_FACTOR 10
 
 typedef enum e_directions {
 	UP,
