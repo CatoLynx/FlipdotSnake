@@ -38,6 +38,8 @@ void clearPlayfield();
 void outputPlayfield();
 void endGame();
 uint8_t addSnakeVertex(uint8_t x, uint8_t y);
+uint8_t getSnakeVertexX(int index);
+uint8_t getSnakeVertexY(int index);
 void resetSnake();
 void renderSnake();
 t_collisionType advanceSnake();

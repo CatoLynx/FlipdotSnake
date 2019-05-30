@@ -13,7 +13,8 @@
 unsigned int playfield[MATRIX_WIDTH] = {0};
 unsigned int oldPlayfield[MATRIX_WIDTH] = {0};
 uint8_t snakeVertices[NUM_VERTICES*2] = {0}; // 2 bytes per vertex
-unsigned int curSnakeVertex = 0;
+int nextFreeSnakeVertex = 0;
+unsigned int numUsedVertices = 0;
 int curXPos = 0;
 int curYPos = 0;
 uint8_t curFoodXPos = 0;
@@ -86,16 +87,31 @@ void endGame() {
 }
 
 uint8_t addSnakeVertex(uint8_t x, uint8_t y) {
-	// Adds a snake vertex and returns 0 if the snake is full, 1 otherwise
-	snakeVertices[curSnakeVertex*2] = x;
-	snakeVertices[curSnakeVertex*2+1] = y;
-	curSnakeVertex++;
-	return (curSnakeVertex < NUM_VERTICES);
+	// Tries to add a snake vertex and returns 0 if the snake is full (failure), 1 on success
+	if(numUsedVertices >= NUM_VERTICES) return 0;
+	snakeVertices[nextFreeSnakeVertex*2] = x;
+	snakeVertices[nextFreeSnakeVertex*2+1] = y;
+	nextFreeSnakeVertex++;
+	nextFreeSnakeVertex %= NUM_VERTICES;
+	numUsedVertices++;
+	return 1;
+}
+
+uint8_t getSnakeVertexX(int index) {
+	while (index < 0) index += NUM_VERTICES;
+	index %= NUM_VERTICES;
+	return snakeVertices[index*2];
+}
+
+uint8_t getSnakeVertexY(int index) {
+	while (index < 0) index += NUM_VERTICES;
+	index %= NUM_VERTICES;
+	return snakeVertices[index*2+1];
 }
 
 void resetSnake() {
 	// Initialise variables
-	curSnakeVertex = 0;
+	nextFreeSnakeVertex = 0;
 	curXPos = 0;
 	curYPos = 0;
 	curSnakeLength = INITIAL_SNAKE_LENGTH;
@@ -141,20 +157,31 @@ void renderSnake() {
 	unsigned int dist = 0;
 	unsigned int totalDist = 1;
 	t_direction dir = INVALID;
-	for(int i = NUM_VERTICES - 2; i >= 0; i--) {
+	int i = 0;
+	unsigned int vertexCount = 0;
+	
+	// TODO: STILL BUGGY WITH SMALL RINGBUFFER
+	
+	for(int j = 0; j < NUM_VERTICES; j++) {
 		// Render the snake from the newest vertex to the oldest so we can stop if the length is reached
-		x0 = snakeVertices[i*2+2];
-		y0 = snakeVertices[i*2+3];
-		x1 = snakeVertices[i*2];
-		y1 = snakeVertices[i*2+1];
+		i = (nextFreeSnakeVertex - j);
+		if(i < 0) i += NUM_VERTICES;
+		
+		x0 = getSnakeVertexX(i+1);
+		y0 = getSnakeVertexY(i+1);
+		x1 = getSnakeVertexX(i);
+		y1 = getSnakeVertexY(i);
 		if(x1 == 255 && y1 == 255) continue;
 		if(x0 == 255 && y0 == 255 && x1 != 255 && y1 != 255) {
 			// First point is the current point
 			x0 = curXPos;
 			y0 = curYPos;
 		}
+		
 		dist = getSnakeDistance(x0, y0, x1, y1);
 		totalDist += dist;
+		vertexCount++;
+		
 		if(totalDist >= curSnakeLength) {
 			dir = getSnakeDirection(x0, y0, x1, y1);
 			uint8_t diff = totalDist - curSnakeLength;
@@ -173,6 +200,8 @@ void renderSnake() {
 			drawLine(&playfield, x0, y0, x1, y1, 1);
 		}
 	}
+	
+	numUsedVertices = vertexCount + 1; // +1 as a reserve in case the snake gets fed and the last vertex has to be reused
 }
 
 t_collisionType advanceSnake() {
@@ -253,12 +282,17 @@ uint8_t checkForSnake(int x, int y) {
 	unsigned int dist = 0;
 	unsigned int totalDist = 1;
 	t_direction dir = INVALID;
-	for(int i = NUM_VERTICES - 2; i >= 0; i--) {
+	int i = 0;
+	
+	for(int j = 0; j < NUM_VERTICES; j++) {
 		// Check the snake from the newest vertex to the oldest so we can stop if the length is reached
-		x0 = snakeVertices[i*2+2];
-		y0 = snakeVertices[i*2+3];
-		x1 = snakeVertices[i*2];
-		y1 = snakeVertices[i*2+1];
+		i = (nextFreeSnakeVertex - j);
+		if(i < 0) i += NUM_VERTICES;
+		
+		x0 = getSnakeVertexX(i+1);
+		y0 = getSnakeVertexY(i+1);
+		x1 = getSnakeVertexX(i);
+		y1 = getSnakeVertexY(i);
 		if(x1 == 255 && y1 == 255) continue;
 		if(x0 == 255 && y0 == 255 && x1 != 255 && y1 != 255) {
 			// First point is the current point
