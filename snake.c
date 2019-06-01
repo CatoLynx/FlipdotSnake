@@ -6,12 +6,11 @@
  */ 
 
 #include "snake.h"
+#include "game.h"
 #include "graphics.h"
 #include "flipdot.h"
 #include <stdlib.h>
 
-unsigned int playfield[MATRIX_WIDTH] = {0};
-unsigned int oldPlayfield[MATRIX_WIDTH] = {0};
 uint8_t snakeVertices[NUM_VERTICES*2] = {0}; // 2 bytes per vertex
 int nextFreeSnakeVertex = 0;
 unsigned int numUsedVertices = 0;
@@ -25,20 +24,6 @@ int curInterval = START_INTERVAL;
 t_direction newDirection = INVALID;
 t_direction curDirection = INVALID;
 t_direction lastDirection = INVALID;
-
-uint8_t getRandomNumber(uint8_t min, uint8_t max) {
-	return ((unsigned long)rand() * (max - min) / RAND_MAX) + min;
-}
-
-t_direction getDPad() {
-	unsigned int adcResult = ADCL;
-	adcResult |= ((unsigned int)ADCH << 8);
-	if(adcResult < 20) return UP;
-	if(adcResult > 300 && adcResult < 350) return DOWN;
-	if(adcResult > 490 && adcResult < 530) return LEFT;
-	if(adcResult > 830 && adcResult < 870) return RIGHT;
-	return INVALID;
-}
 
 void updateDirection() {
 	newDirection = getDPad();
@@ -59,13 +44,8 @@ void generateObjects() {
 	setPixelAt(&playfield, curFoodXPos, curFoodYPos, 1);
 }
 
-void clearPlayfield() {
-	memset(&playfield, 0, MATRIX_WIDTH*2);
-}
-
-void outputPlayfield() {
-	setMatrix(&playfield, &oldPlayfield);
-	memcpy(&oldPlayfield, &playfield, MATRIX_WIDTH*2);
+void outputSnakePlayfield() {
+	outputPlayfield();
 	unsigned int count = curInterval;
 	while(count--) {
 		updateDirection();

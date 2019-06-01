@@ -77,6 +77,7 @@ enum SERIAL_STATUSES {
   ERROR = 0xEE,
 };
 
+void setPin(uint8_t* port, uint8_t pin, uint8_t state);
 void selectColumn(uint8_t colIndex);
 void selectRow(uint8_t rowIndex, uint8_t yellow);
 void deselect();

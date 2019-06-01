@@ -6,16 +6,31 @@
  */ 
 
 #include <avr/io.h>
+#include <avr/interrupt.h>
 #include <util/delay.h>
 
+#include "main.h"
+#include "game.h"
 #include "flipdot.h"
-#include "snake.h"
 
-extern unsigned int* playfield;
+volatile unsigned long long sysTicks = 0;
+
+#ifdef SNAKE
+#include "snake.h"
 extern t_direction curDirection, lastDirection;
 extern int curXPos, curYPos;
 extern unsigned int curSnakeLength;
+#endif
 
+#ifdef TETRIS
+#include "tetris.h"
+#endif
+
+
+ISR(TIMER0_COMPA_vect) {
+	// Systick interrupt
+	sysTicks++;
+}
 
 int main(void)
 {
@@ -40,16 +55,30 @@ int main(void)
 	srand(randomSeed);
 	ADMUX = 0b01000111;
 	
-	t_collisionType collisionType = NONE;
+	TCCR0A = 0b00000010;	// CTC mode
+	TCCR0B = 0b00000011;	// Clock source: F_CPU/64 (= 250 kHz)
+	OCR0A  = 249;			// 1 ms
+	TIMSK0 = 0b00000010;	// Enable interrupt
 	
+	asm("sei");
+	
+	#ifdef SNAKE
+	t_collisionType collisionType = NONE;
 	clearMatrix();
+	#endif
+	
+	#ifdef TETRIS
+	clearMatrix();
+	generateNewBlock();
+	#endif
 	
 	while(1) {
+		#ifdef SNAKE
 		clearPlayfield();
 		resetSnake();
 		clearPlayfield();
 		renderSnake();
-		outputPlayfield();
+		outputSnakePlayfield();
 		while(getDPad() != INVALID);
 		while(getDPad() == INVALID);
 	
@@ -64,8 +93,12 @@ int main(void)
 				break;
 			}
 			renderSnake();
-			outputPlayfield();
+			outputSnakePlayfield();
 		}
-	
+		#endif
+		
+		#ifdef TETRIS
+		tetrisLoop();
+		#endif
 	}
 }
