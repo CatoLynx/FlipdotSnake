@@ -11,8 +11,8 @@
 
 #include "flipdot.h"
 
-unsigned int playfield[MATRIX_WIDTH];
-unsigned int oldPlayfield[MATRIX_WIDTH];
+uint16_t playfield[MATRIX_WIDTH];
+uint16_t oldPlayfield[MATRIX_WIDTH];
 
 typedef enum e_directions {
 	UP,
@@ -25,7 +25,7 @@ typedef enum e_directions {
 t_direction getDPad();
 uint8_t getRandomNumber(uint8_t min, uint8_t max);
 void clearPlayfield();
-void overlayPlayfield(unsigned int* buf);
+void overlayPlayfield(uint16_t* buf);
 void outputPlayfield();
 void restoreOldPlayfield();
 

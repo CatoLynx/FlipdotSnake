@@ -9,12 +9,12 @@
 #include <avr/io.h>
 #include <stdlib.h>
 
-unsigned int playfield[MATRIX_WIDTH] = {0};
-unsigned int oldPlayfield[MATRIX_WIDTH] = {0};
+uint16_t playfield[MATRIX_WIDTH] = {0};
+uint16_t oldPlayfield[MATRIX_WIDTH] = {0};
 	
 t_direction getDPad() {
-	unsigned int adcResult = ADCL;
-	adcResult |= ((unsigned int)ADCH << 8);
+	uint16_t adcResult = ADCL;
+	adcResult |= ((uint16_t)ADCH << 8);
 	if(adcResult < 20) return UP;
 	if(adcResult > 300 && adcResult < 350) return DOWN;
 	if(adcResult > 490 && adcResult < 530) return LEFT;
@@ -23,15 +23,15 @@ t_direction getDPad() {
 }
 
 uint8_t getRandomNumber(uint8_t min, uint8_t max) {
-	return ((unsigned long)rand() * (max - min) / RAND_MAX) + min;
+	return ((uint32_t)rand() * (max - min) / RAND_MAX) + min;
 }
 
 void clearPlayfield() {
 	memset(&playfield, 0, MATRIX_WIDTH*2);
 }
 
-void overlayPlayfield(unsigned int* buf) {
-	for(unsigned int i = 0; i < MATRIX_WIDTH; i++) {
+void overlayPlayfield(uint16_t* buf) {
+	for(uint16_t i = 0; i < MATRIX_WIDTH; i++) {
 		playfield[i] |= buf[i];
 	}
 }

@@ -21,7 +21,7 @@ const uint8_t FONT[10*3] = {
 	0b11101, 0b10101, 0b11111  // 9
 };
 
-t_collision setPixelAt(unsigned int* buf, int x, int y, uint8_t state) {
+t_collision setPixelAt(uint16_t* buf, int16_t x, int16_t y, uint8_t state) {
 	// Sets a pixel in a framebuffer to a value
 	// Returns the direction in which a collision occurred, if any
 	// Collision detection currently only works for yellow on yellow and yellow on out-of-bounds
@@ -41,19 +41,19 @@ t_collision setPixelAt(unsigned int* buf, int x, int y, uint8_t state) {
 	return ret;
 }
 
-uint8_t getPixelAt(unsigned int* buf, uint8_t x, uint8_t y) {
+uint8_t getPixelAt(uint16_t* buf, uint8_t x, uint8_t y) {
 	// Gets a pixel in a framebuffer
 	if(x >= MATRIX_WIDTH || y >= VIEWPORT_HEIGHT) return 0;
 	y = MATRIX_HEIGHT - y - 1;
 	return !!(buf[x] & (1 << y));
 }
 
-t_collision drawLine(unsigned int* buf, int x0, int y0, int x1, int y1, uint8_t state) {
+t_collision drawLine(uint16_t* buf, int16_t x0, int16_t y0, int16_t x1, int16_t y1, uint8_t state) {
 	t_collision coll = NO_COLL;
 	t_collision tmpColl = NO_COLL;
-	int dx =  abs (x1 - x0), sx = x0 < x1 ? 1 : -1;
-	int dy = -abs (y1 - y0), sy = y0 < y1 ? 1 : -1;
-	int err = dx + dy, e2; /* error value e_xy */
+	int16_t dx =  abs (x1 - x0), sx = x0 < x1 ? 1 : -1;
+	int16_t dy = -abs (y1 - y0), sy = y0 < y1 ? 1 : -1;
+	int16_t err = dx + dy, e2; /* error value e_xy */
 	
 	while (1) {
 		tmpColl = setPixelAt(buf, x0, y0, state);
@@ -66,7 +66,7 @@ t_collision drawLine(unsigned int* buf, int x0, int y0, int x1, int y1, uint8_t 
 	return coll;
 }
 
-t_collision drawRectangle(unsigned int* buf, int x0, int y0, int x1, int y1, uint8_t state) {
+t_collision drawRectangle(uint16_t* buf, int16_t x0, int16_t y0, int16_t x1, int16_t y1, uint8_t state) {
 	t_collision coll = NO_COLL;
 	t_collision tmpColl = NO_COLL;
 	tmpColl = drawLine(buf, x0, y0, x0, y1, state);
@@ -80,10 +80,14 @@ t_collision drawRectangle(unsigned int* buf, int x0, int y0, int x1, int y1, uin
 	return coll;
 }
 
-t_collision drawCircle(unsigned int* buf, int x0, int y0, int r, uint8_t state) {
+void fill(uint16_t* buf, uint8_t state, uint16_t length) {
+	memset(buf, (state ? 0xFFFF : 0x0000), length*2);
+}
+
+t_collision drawCircle(uint16_t* buf, int16_t x0, int16_t y0, int16_t r, uint8_t state) {
 	t_collision coll = NO_COLL;
 	t_collision tmpColl = NO_COLL;
-	int x = -r, y = 0, err = 2-2*r; /* II. Quadrant */
+	int16_t x = -r, y = 0, err = 2-2*r; /* II. Quadrant */
 	do {
 		tmpColl = setPixelAt(buf, x0-x, y0+y, state); /*   I. Quadrant */
 		if(tmpColl != NO_COLL) coll = tmpColl;
@@ -100,10 +104,10 @@ t_collision drawCircle(unsigned int* buf, int x0, int y0, int r, uint8_t state) 
 	return coll;
 }
 
-t_collision drawEllipse(unsigned int* buf, int x0, int y0, int x1, int y1, uint8_t state) {
+t_collision drawEllipse(uint16_t* buf, int16_t x0, int16_t y0, int16_t x1, int16_t y1, uint8_t state) {
 	t_collision coll = NO_COLL;
 	t_collision tmpColl = NO_COLL;
-	int a = abs (x1 - x0), b = abs (y1 - y0), b1 = b & 1; /* values of diameter */
+	int16_t a = abs (x1 - x0), b = abs (y1 - y0), b1 = b & 1; /* values of diameter */
 	long dx = 4 * (1 - a) * b * b, dy = 4 * (b1 + 1) * a * a; /* error increment */
 	long err = dx + dy + b1 * a * a, e2; /* error of 1.step */
 
@@ -150,7 +154,7 @@ t_collision drawEllipse(unsigned int* buf, int x0, int y0, int x1, int y1, uint8
 		return coll;
 }
 
-void floodFill(unsigned int* buf, int x0, int y0, uint8_t state) {
+void floodFill(uint16_t* buf, int16_t x0, int16_t y0, uint8_t state) {
 	if(getPixelAt(buf, x0, y0) != state)
 	{
 		setPixelAt(buf, x0, y0, state);
@@ -161,7 +165,7 @@ void floodFill(unsigned int* buf, int x0, int y0, uint8_t state) {
 	}
 }
 
-t_collision drawBitmapColMajor(unsigned int* buf, int x0, int y0, uint8_t width, uint8_t height, uint8_t* bitmap, uint8_t state, uint8_t useAlpha) {
+t_collision drawBitmapColMajor(uint16_t* buf, int16_t x0, int16_t y0, uint8_t width, uint8_t height, uint8_t* bitmap, uint8_t state, uint8_t useAlpha) {
 	t_collision coll = NO_COLL;
 	t_collision tmpColl = NO_COLL;
 	for(uint8_t col = 0; col < width; col++) {
@@ -174,7 +178,7 @@ t_collision drawBitmapColMajor(unsigned int* buf, int x0, int y0, uint8_t width,
 	return coll;
 }
 
-t_collision drawBitmapRowMajor(unsigned int* buf, int x0, int y0, uint8_t width, uint8_t height, uint8_t* bitmap, uint8_t state, uint8_t useAlpha) {
+t_collision drawBitmapRowMajor(uint16_t* buf, int16_t x0, int16_t y0, uint8_t width, uint8_t height, uint8_t* bitmap, uint8_t state, uint8_t useAlpha) {
 	t_collision coll = NO_COLL;
 	t_collision tmpColl = NO_COLL;
 	for(uint8_t row = 0; row < height; row++) {
@@ -187,10 +191,31 @@ t_collision drawBitmapRowMajor(unsigned int* buf, int x0, int y0, uint8_t width,
 	return coll;
 }
 
-t_collision drawNumber(unsigned int* buf, int x0, int y0, unsigned int number, uint8_t state) {
+t_collision drawNumber(uint16_t* buf, int16_t x0, int16_t y0, uint32_t number, uint8_t state) {
 	t_collision coll = NO_COLL;
 	t_collision tmpColl = NO_COLL;
 	uint8_t forceDraw = 0;
+	if(forceDraw || number >= 10000000) {
+		tmpColl = drawNumber(buf, x0, y0, number/10000000, state);
+		if(tmpColl != NO_COLL) coll = tmpColl;
+		number %= 10000000;
+		x0 += 4;
+		forceDraw = 1;
+	}
+	if(forceDraw || number >= 1000000) {
+		tmpColl = drawNumber(buf, x0, y0, number/1000000, state);
+		if(tmpColl != NO_COLL) coll = tmpColl;
+		number %= 1000000;
+		x0 += 4;
+		forceDraw = 1;
+	}
+	if(forceDraw || number >= 100000) {
+		tmpColl = drawNumber(buf, x0, y0, number/100000, state);
+		if(tmpColl != NO_COLL) coll = tmpColl;
+		number %= 100000;
+		x0 += 4;
+		forceDraw = 1;
+	}
 	if(forceDraw || number >= 10000) {
 		tmpColl = drawNumber(buf, x0, y0, number/10000, state);
 		if(tmpColl != NO_COLL) coll = tmpColl;
@@ -226,10 +251,10 @@ t_collision drawNumber(unsigned int* buf, int x0, int y0, unsigned int number, u
 }
 
 uint8_t isPointOnLine(uint8_t x, uint8_t y, uint8_t x0, uint8_t y0, uint8_t x1, uint8_t y1) {
-	// Checks whether the point (x,y) is on the line (x0,y0 - x1,y1)
-	int dx =  abs (x1 - x0), sx = x0 < x1 ? 1 : -1;
-	int dy = -abs (y1 - y0), sy = y0 < y1 ? 1 : -1;
-	int err = dx + dy, e2; /* error value e_xy */
+	// Checks whether the point16_t (x,y) is on the line (x0,y0 - x1,y1)
+	int16_t dx =  abs (x1 - x0), sx = x0 < x1 ? 1 : -1;
+	int16_t dy = -abs (y1 - y0), sy = y0 < y1 ? 1 : -1;
+	int16_t err = dx + dy, e2; /* error value e_xy */
 	
 	while (1) {
 		if(x == x0 && y == y0) return 1;

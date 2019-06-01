@@ -12,15 +12,15 @@
 #include <stdlib.h>
 
 uint8_t snakeVertices[NUM_VERTICES*2] = {0}; // 2 bytes per vertex
-int nextFreeSnakeVertex = 0;
-unsigned int numUsedVertices = 0;
-int curXPos = 0;
-int curYPos = 0;
+int16_t nextFreeSnakeVertex = 0;
+uint16_t numUsedVertices = 0;
+int16_t curXPos = 0;
+int16_t curYPos = 0;
 uint8_t curFoodXPos = 0;
 uint8_t curFoodYPos = 0;
 uint8_t foodEaten = 1;
-unsigned int curSnakeLength = INITIAL_SNAKE_LENGTH;
-int curInterval = START_INTERVAL;
+uint16_t curSnakeLength = INITIAL_SNAKE_LENGTH;
+int16_t curInterval = START_INTERVAL;
 t_direction newDirection = INVALID;
 t_direction curDirection = INVALID;
 t_direction lastDirection = INVALID;
@@ -46,7 +46,7 @@ void generateObjects() {
 
 void outputSnakePlayfield() {
 	outputPlayfield();
-	unsigned int count = curInterval;
+	uint16_t count = curInterval;
 	while(count--) {
 		updateDirection();
 		_delay_ms(1);
@@ -77,13 +77,13 @@ uint8_t addSnakeVertex(uint8_t x, uint8_t y) {
 	return 1;
 }
 
-uint8_t getSnakeVertexX(int index) {
+uint8_t getSnakeVertexX(int16_t index) {
 	while (index < 0) index += NUM_VERTICES;
 	index %= NUM_VERTICES;
 	return snakeVertices[index*2];
 }
 
-uint8_t getSnakeVertexY(int index) {
+uint8_t getSnakeVertexY(int16_t index) {
 	while (index < 0) index += NUM_VERTICES;
 	index %= NUM_VERTICES;
 	return snakeVertices[index*2+1];
@@ -134,15 +134,15 @@ void resetSnake() {
 
 void renderSnake() {
 	uint8_t x0, y0, x1, y1;
-	unsigned int dist = 0;
-	unsigned int totalDist = 1;
+	uint16_t dist = 0;
+	uint16_t totalDist = 1;
 	t_direction dir = INVALID;
-	int i = 0;
-	unsigned int vertexCount = 0;
+	int16_t i = 0;
+	uint16_t vertexCount = 0;
 	
 	// TODO: STILL BUGGY WITH SMALL RINGBUFFER
 	
-	for(int j = 0; j < NUM_VERTICES; j++) {
+	for(int16_t j = 0; j < NUM_VERTICES; j++) {
 		// Render the snake from the newest vertex to the oldest so we can stop if the length is reached
 		i = (nextFreeSnakeVertex - j);
 		if(i < 0) i += NUM_VERTICES;
@@ -153,7 +153,7 @@ void renderSnake() {
 		y1 = getSnakeVertexY(i);
 		if(x1 == 255 && y1 == 255) continue;
 		if(x0 == 255 && y0 == 255 && x1 != 255 && y1 != 255) {
-			// First point is the current point
+			// First point16_t is the current point
 			x0 = curXPos;
 			y0 = curYPos;
 		}
@@ -237,12 +237,12 @@ void feedSnake(uint8_t amount) {
 	if(curInterval < MIN_INTERVAL) curInterval = MIN_INTERVAL;
 }
 
-unsigned int getSnakeDistance(int x0, int y0, int x1, int y1) {
+uint16_t getSnakeDistance(int16_t x0, int16_t y0, int16_t x1, int16_t y1) {
 	// Calculates the distance between two points around a corner (not straight)
 	return abs(x1 - x0) + abs(y1 - y0);
 }
 
-t_direction getSnakeDirection(int x0, int y0, int x1, int y1) {
+t_direction getSnakeDirection(int16_t x0, int16_t y0, int16_t x1, int16_t y1) {
 	// Calculates the direction the snake has to travel between two points
 	// The points must not be diagonally apart
 	if(y1 < y0) return UP;
@@ -252,19 +252,19 @@ t_direction getSnakeDirection(int x0, int y0, int x1, int y1) {
 	return INVALID;
 }
 
-uint8_t checkForWall(int x, int y) {
+uint8_t checkForWall(int16_t x, int16_t y) {
 	return 0;
 }
 
-uint8_t checkForSnake(int x, int y) {
-	// Checks if the given point lies within the snake
+uint8_t checkForSnake(int16_t x, int16_t y) {
+	// Checks if the given point16_t lies within the snake
 	uint8_t x0, y0, x1, y1;
-	unsigned int dist = 0;
-	unsigned int totalDist = 1;
+	uint16_t dist = 0;
+	uint16_t totalDist = 1;
 	t_direction dir = INVALID;
-	int i = 0;
+	int16_t i = 0;
 	
-	for(int j = 0; j < NUM_VERTICES; j++) {
+	for(int16_t j = 0; j < NUM_VERTICES; j++) {
 		// Check the snake from the newest vertex to the oldest so we can stop if the length is reached
 		i = (nextFreeSnakeVertex - j);
 		if(i < 0) i += NUM_VERTICES;
@@ -275,7 +275,7 @@ uint8_t checkForSnake(int x, int y) {
 		y1 = getSnakeVertexY(i);
 		if(x1 == 255 && y1 == 255) continue;
 		if(x0 == 255 && y0 == 255 && x1 != 255 && y1 != 255) {
-			// First point is the current point
+			// First point16_t is the current point
 			x0 = curXPos;
 			y0 = curYPos;
 		}

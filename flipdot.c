@@ -34,6 +34,10 @@ uint8_t quickUpdate = 1;
  * HELPER FUNCTIONS
  */
 
+void setQuickUpdate(uint8_t state) {
+	quickUpdate = state;
+}
+
 void setPin(uint8_t* port, uint8_t pin, uint8_t state) {
 	if(state) {
 		*port |= pin;
@@ -151,14 +155,14 @@ void setPixel(uint8_t x, uint8_t y, uint8_t state) {
 	deselect();
 }
 
-void setMatrix(unsigned int* newBitmap, unsigned int* oldBitmap) {
+void setMatrix(uint16_t* newBitmap, uint16_t* oldBitmap) {
   /*
    * Write a bitmap to the matrix.
    */
 
-  for (int col = 0; col < MATRIX_WIDTH; col++) {
-    unsigned int newColData = newBitmap[col];
-    unsigned int oldColData;
+  for (int16_t col = 0; col < MATRIX_WIDTH; col++) {
+    uint16_t newColData = newBitmap[col];
+    uint16_t oldColData;
     uint8_t colChanged;
 
     // Determine whether the current column has been changed
@@ -177,7 +181,7 @@ void setMatrix(unsigned int* newBitmap, unsigned int* oldBitmap) {
     uint8_t panel = col / PANEL_WIDTH;
 
     selectColumn(col);
-    for (int row = 0; row < MATRIX_HEIGHT; row++) {
+    for (int16_t row = 0; row < MATRIX_HEIGHT; row++) {
       // Determine whether the current pixel has been changed
       uint8_t pixelChanged = !quickUpdate || !oldBitmap || (oldColData & (1 << row)) != (newColData & (1 << row));
       if (!pixelChanged) continue;
@@ -192,12 +196,12 @@ void setMatrix(unsigned int* newBitmap, unsigned int* oldBitmap) {
 }
 
 void clearMatrix() {
-	for (int col = 0; col < MATRIX_WIDTH; col++) {
+	for (int16_t col = 0; col < MATRIX_WIDTH; col++) {
 		// Which panel are we on?
 		uint8_t panel = col / PANEL_WIDTH;
 
 		selectColumn(col);
-		for (int row = 0; row < MATRIX_HEIGHT; row++) {
+		for (int16_t row = 0; row < MATRIX_HEIGHT; row++) {
 			selectRow(MATRIX_HEIGHT - row - 1, 0);
 			flip(panel);
 		}

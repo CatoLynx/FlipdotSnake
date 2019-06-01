@@ -13,13 +13,13 @@
 #include "game.h"
 #include "flipdot.h"
 
-volatile unsigned long long sysTicks = 0;
+volatile uint64_t sysTicks = 0;
 
 #ifdef SNAKE
 #include "snake.h"
 extern t_direction curDirection, lastDirection;
-extern int curXPos, curYPos;
-extern unsigned int curSnakeLength;
+extern int16_t curXPos, curYPos;
+extern uint16_t curSnakeLength;
 #endif
 
 #ifdef TETRIS
@@ -32,7 +32,7 @@ ISR(TIMER0_COMPA_vect) {
 	sysTicks++;
 }
 
-int main(void)
+int16_t main(void)
 {
 	setPin(&PORT_ROWS_BOTTOM, ROWS_BOTTOM, 1);
 	setPin(&PORT_ROWS_TOP, ROWS_TOP, 1);
@@ -45,10 +45,10 @@ int main(void)
 	
 	ADMUX = 0b01000110;
 	ADCSRA |= 0b11100111;
-	unsigned int randomSeed = 0;
+	uint16_t randomSeed = 0;
 	uint8_t dummy = 0;
 	for(uint8_t i = 0; i < 10; i++) {
-		randomSeed |= ((unsigned int)ADCL & 1) << i;
+		randomSeed |= ((uint16_t)ADCL & 1) << i;
 		dummy = ADCH;
 		_delay_ms(1);
 	}

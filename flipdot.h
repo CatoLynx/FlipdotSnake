@@ -77,6 +77,7 @@ enum SERIAL_STATUSES {
   ERROR = 0xEE,
 };
 
+void setQuickUpdate(uint8_t state);
 void setPin(uint8_t* port, uint8_t pin, uint8_t state);
 void selectColumn(uint8_t colIndex);
 void selectRow(uint8_t rowIndex, uint8_t yellow);
@@ -84,7 +85,7 @@ void deselect();
 void flip(uint8_t panelIndex);
 void setBacklight(uint8_t status);
 void setPixel(uint8_t x, uint8_t y, uint8_t state);
-void setMatrix(unsigned int* newBitmap, unsigned int* oldBitmap);
+void setMatrix(uint16_t* newBitmap, uint16_t* oldBitmap);
 void clearMatrix();
 
 #endif /* FLIPDOT_H_ */

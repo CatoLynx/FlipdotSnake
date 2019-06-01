@@ -9,8 +9,10 @@
 #ifndef MAIN_H_
 #define MAIN_H_
 
+#include <stdint.h>
+
 #define TETRIS
 
-volatile unsigned long long sysTicks;
+volatile uint64_t sysTicks;
 
 #endif /* MAIN_H_ */
