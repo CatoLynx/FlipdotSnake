@@ -21,7 +21,7 @@
 #define MAX_LEVEL 4
 #define LINE_CHECK_MASK 0b1111111111111000
 
-#define EEPROM_ADDR_HIGH_SCORE 0x100
+#define EEPROM_ADDR_TETRIS_HIGH_SCORE 0x100
 
 typedef enum e_blockTypes {
 	BLOCK_I,
@@ -58,7 +58,8 @@ uint8_t checkLineFull(uint8_t x);
 void removeLine(uint8_t x);
 void removeFullLines();
 void tetrisGameOver();
-void updateHighScore();
+void updateTetrisHighScore();
+void tetrisInit();
 void tetrisLoop();
 
 #endif /* TETRIS_H_ */

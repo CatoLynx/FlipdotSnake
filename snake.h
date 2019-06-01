@@ -19,6 +19,8 @@
 #define BLOCKS_PER_SPEEDUP 5
 #define SPEEDUP_FACTOR 10
 
+#define EEPROM_ADDR_SNAKE_HIGH_SCORE 0x050
+
 typedef enum e_collisionTypes {
 	NONE,
 	OUTOFBOUNDS,
@@ -42,5 +44,8 @@ uint16_t getSnakeDistance(int16_t x0, int16_t y0, int16_t x1, int16_t y1);
 t_direction getSnakeDirection(int16_t x0, int16_t y0, int16_t x1, int16_t y1);
 uint8_t checkForWall(int16_t x, int16_t y);
 uint8_t checkForSnake(int16_t x, int16_t y);
+void updateSnakeHighScore();
+void snakeInit();
+void snakeLoop();
 
 #endif /* SNAKE_H_ */

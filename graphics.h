@@ -20,8 +20,6 @@ typedef enum e_collisions {
 	OOB_RIGHT = 16
 } t_collision;
 
-const uint8_t FONT[10*3];
-
 t_collision setPixelAt(uint16_t* buf, int16_t x, int16_t y, uint8_t state);
 uint8_t getPixelAt(uint16_t* buf, uint8_t x, uint8_t y);
 t_collision drawLine(uint16_t* buf, int16_t x0, int16_t y0, int16_t x1, int16_t y1, uint8_t state);
@@ -32,6 +30,7 @@ t_collision drawEllipse(uint16_t* buf, int16_t x0, int16_t y0, int16_t x1, int16
 void floodFill(uint16_t* buf, int16_t x0, int16_t y0, uint8_t state);
 t_collision drawBitmapColMajor(uint16_t* buf, int16_t x0, int16_t y0, uint8_t width, uint8_t height, uint8_t* bitmap, uint8_t state, uint8_t useAlpha);
 t_collision drawBitmapRowMajor(uint16_t* buf, int16_t x0, int16_t y0, uint8_t width, uint8_t height, uint8_t* bitmap, uint8_t state, uint8_t useAlpha);
+t_collision drawString(uint16_t* buf, int16_t x0, int16_t y0, char* string, uint8_t state);
 t_collision drawNumber(uint16_t* buf, int16_t x0, int16_t y0, uint32_t number, uint8_t state);
 uint8_t isPointOnLine(uint8_t x, uint8_t y, uint8_t x0, uint8_t y0, uint8_t x1, uint8_t y1);
 

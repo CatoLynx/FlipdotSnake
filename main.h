@@ -11,8 +11,6 @@
 
 #include <stdint.h>
 
-#define TETRIS
-
 volatile uint64_t sysTicks;
 
 #endif /* MAIN_H_ */

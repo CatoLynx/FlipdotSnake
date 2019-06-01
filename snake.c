@@ -11,6 +11,8 @@
 #include "flipdot.h"
 #include <stdlib.h>
 
+#include <avr/eeprom.h>
+
 uint8_t snakeVertices[NUM_VERTICES*2] = {0}; // 2 bytes per vertex
 int16_t nextFreeSnakeVertex = 0;
 uint16_t numUsedVertices = 0;
@@ -24,6 +26,8 @@ int16_t curInterval = START_INTERVAL;
 t_direction newDirection = INVALID;
 t_direction curDirection = INVALID;
 t_direction lastDirection = INVALID;
+t_collisionType collisionType = NONE;
+uint32_t snakeScore = 0;
 
 void updateDirection() {
 	newDirection = getDPad();
@@ -62,7 +66,10 @@ void endGame() {
 	outputPlayfield();
 	_delay_ms(1000);
 	clearPlayfield();
-	drawNumber(&playfield, 0, 0, curSnakeLength - INITIAL_SNAKE_LENGTH, 1);
+	updateSnakeHighScore();
+	uint32_t highScore = eeprom_read_dword(EEPROM_ADDR_SNAKE_HIGH_SCORE);
+	drawNumber(&playfield, 0, 0, snakeScore, 1);
+	drawNumber(&playfield, 0, 8, highScore, 1);
 	outputPlayfield();
 }
 
@@ -233,6 +240,7 @@ t_collisionType advanceSnake() {
 
 void feedSnake(uint8_t amount) {
 	curSnakeLength += amount;
+	snakeScore = curSnakeLength - INITIAL_SNAKE_LENGTH;
 	curInterval = START_INTERVAL - (curSnakeLength / BLOCKS_PER_SPEEDUP) * SPEEDUP_FACTOR;
 	if(curInterval < MIN_INTERVAL) curInterval = MIN_INTERVAL;
 }
@@ -300,4 +308,39 @@ uint8_t checkForSnake(int16_t x, int16_t y) {
 		}
 	}
 	return 0;
+}
+
+void updateSnakeHighScore() {
+	uint32_t highScore = eeprom_read_dword(EEPROM_ADDR_SNAKE_HIGH_SCORE);
+	if(highScore == (uint32_t)-1) highScore = 0;
+	if(snakeScore > highScore) eeprom_update_dword(EEPROM_ADDR_SNAKE_HIGH_SCORE, snakeScore);
+}
+
+void snakeInit() {
+	//nothing to do
+}
+
+void snakeLoop() {
+	while(1) {
+		clearPlayfield();
+		resetSnake();
+		clearPlayfield();
+		renderSnake();
+		outputSnakePlayfield();
+		while(getDPad() != INVALID);
+		while(getDPad() == INVALID);
+	
+		while (1)
+		{
+			clearPlayfield();
+			generateObjects();
+			collisionType = advanceSnake();
+			if(collisionType != NONE) {
+				endGame();
+				return;
+			}
+			renderSnake();
+			outputSnakePlayfield();
+		}
+	}
 }

@@ -262,153 +262,159 @@ void tetrisGameOver() {
 	setQuickUpdate(1);
 	_delay_ms(1000);
 	clearPlayfield();
-	updateHighScore();
-	uint32_t highScore = eeprom_read_dword(EEPROM_ADDR_HIGH_SCORE);
+	updateTetrisHighScore();
+	uint32_t highScore = eeprom_read_dword(EEPROM_ADDR_TETRIS_HIGH_SCORE);
 	drawNumber(&playfield, 0, 0, score, 1);
 	drawNumber(&playfield, 0, 8, highScore, 1);
 	outputPlayfield();
 	score = 0;
 	level = 0;
 	fallInterval = START_FALL_INTERVAL;
+	oldFallInterval = START_FALL_INTERVAL;
 	numLines = 0;
 }
 
-void updateHighScore() {
-	uint32_t highScore = eeprom_read_dword(EEPROM_ADDR_HIGH_SCORE);
+void updateTetrisHighScore() {
+	uint32_t highScore = eeprom_read_dword(EEPROM_ADDR_TETRIS_HIGH_SCORE);
 	if(highScore == (uint32_t)-1) highScore = 0;
-	if(score > highScore) eeprom_update_dword(EEPROM_ADDR_HIGH_SCORE, score);
+	if(score > highScore) eeprom_update_dword(EEPROM_ADDR_TETRIS_HIGH_SCORE, score);
+}
+
+void tetrisInit() {
+	generateNewBlock();
 }
 
 void tetrisLoop() {
-	uint8_t blockMovedUser = 0;
-	uint8_t blockMovedAuto = 0;
-	t_direction dir = getDPad();
-	if(buttonPressed == 0) {
-		switch(dir) {
-			case UP: {
-				buttonPressed = 1;
-				currentBlock.rotation++;
-				currentBlock.rotation %= 4;
-				blockMovedUser = 1;
-				break;
-			}
-			case DOWN: {
-				oldFallInterval = fallInterval;
-				fallInterval = QUICK_FALL_INTERVAL;
-				quickDropActive = 1;
-				buttonPressed = 1;
-				break;
-			}
-			case LEFT: {
-				buttonPressed = 1;
-				currentBlock.y--;
-				blockMovedUser = 1;
-				sidewaysMoveStart = sysTicks;
-				firstSidewaysMove = 1;
-				break;
-			}
-			case RIGHT: {
-				buttonPressed = 1;
-				currentBlock.y++;
-				blockMovedUser = 1;
-				sidewaysMoveStart = sysTicks;
-				firstSidewaysMove = 1;
-				break;
-			}
-		}
-	} else {
-		if(dir == INVALID) {
-			buttonPressed = 0;
-			fallInterval = oldFallInterval;
-			quickDropActive = 0;
-			sidewaysMoveStart = 0;
-			firstSidewaysMove = 0;
-			_delay_ms(100);
-		}
-		
-		if((firstSidewaysMove && (sysTicks - sidewaysMoveStart >= 350)) || (!firstSidewaysMove && (sysTicks - sidewaysMoveStart >= 100))) {
-			// Auto sideways move
-			firstSidewaysMove = 0;
-			sidewaysMoveStart = sysTicks;
+	while(1) {
+		uint8_t blockMovedUser = 0;
+		uint8_t blockMovedAuto = 0;
+		t_direction dir = getDPad();
+		if(buttonPressed == 0) {
 			switch(dir) {
+				case UP: {
+					buttonPressed = 1;
+					currentBlock.rotation++;
+					currentBlock.rotation %= 4;
+					blockMovedUser = 1;
+					break;
+				}
+				case DOWN: {
+					oldFallInterval = fallInterval;
+					fallInterval = QUICK_FALL_INTERVAL;
+					quickDropActive = 1;
+					buttonPressed = 1;
+					break;
+				}
 				case LEFT: {
+					buttonPressed = 1;
 					currentBlock.y--;
 					blockMovedUser = 1;
+					sidewaysMoveStart = sysTicks;
+					firstSidewaysMove = 1;
 					break;
 				}
 				case RIGHT: {
+					buttonPressed = 1;
 					currentBlock.y++;
 					blockMovedUser = 1;
+					sidewaysMoveStart = sysTicks;
+					firstSidewaysMove = 1;
 					break;
 				}
 			}
-		}
-	}
-	
-	if(sysTicks - lastBlockAdvance >= fallInterval) {
-		lastBlockAdvance = sysTicks;
-		currentBlock.x--;
-		blockMovedAuto = 1;
-		if(quickDropActive) score ++;
-	}
-	
-	uint8_t blockPlaced = 0;
-	if(blockMovedAuto || blockMovedUser) {
-		clearPlayfield();
-		overlayPlayfield(&placedBlocksPlayfield);
-		t_collision collision = drawBlockData(&playfield, currentBlock, 1);
-		
-		if((collision & PIXEL) || (collision & OOB_LEFT)) {
-			if(blockMovedAuto) {
-				currentBlock.x++;
-				blockPlaced = 1;
+		} else {
+			if(dir == INVALID) {
+				buttonPressed = 0;
+				fallInterval = oldFallInterval;
+				quickDropActive = 0;
+				sidewaysMoveStart = 0;
+				firstSidewaysMove = 0;
+				_delay_ms(50);
 			}
-		}
 		
-		if(collision != NO_COLL) {
-			// Undo moves if they would result in a collision
-			if(blockPlaced && firstMoveOfNewBlock) {
-				// Game over
-				tetrisGameOver();
-				while(getDPad() == INVALID);
-				return;
-			}
-			
-			if(!(collision & OOB_RIGHT)) {
-				if(blockMovedUser) {
-					switch(dir) {
-						case UP: {
-							currentBlock.rotation--;
-							currentBlock.rotation %= 4;
-							break;
-						}
-						case LEFT: {
-							currentBlock.y++;
-							break;
-						}
-						case RIGHT: {
-							currentBlock.y--;
-							break;
-						}
+			if((firstSidewaysMove && (sysTicks - sidewaysMoveStart >= 350)) || (!firstSidewaysMove && (sysTicks - sidewaysMoveStart >= 100))) {
+				// Auto sideways move
+				firstSidewaysMove = 0;
+				sidewaysMoveStart = sysTicks;
+				switch(dir) {
+					case LEFT: {
+						currentBlock.y--;
+						blockMovedUser = 1;
+						break;
+					}
+					case RIGHT: {
+						currentBlock.y++;
+						blockMovedUser = 1;
+						break;
 					}
 				}
-			
-				restoreOldPlayfield();
 			}
 		}
-		
-		if(blockMovedAuto == 1) firstMoveOfNewBlock = 0;
 	
-		if(blockPlaced) {
-			fallInterval = oldFallInterval;
-			quickDropActive = 0;
-			placeCurrentBlock();
-			removeFullLines();
-			generateNewBlock();
+		if(sysTicks - lastBlockAdvance >= fallInterval) {
+			lastBlockAdvance = sysTicks;
+			currentBlock.x--;
+			blockMovedAuto = 1;
+			if(quickDropActive) score ++;
 		}
+	
+		uint8_t blockPlaced = 0;
+		if(blockMovedAuto || blockMovedUser) {
+			clearPlayfield();
+			overlayPlayfield(&placedBlocksPlayfield);
+			t_collision collision = drawBlockData(&playfield, currentBlock, 1);
 		
-		outputPlayfield();
-		blockMovedAuto = 0;
-		blockMovedUser = 0;
+			if((collision & PIXEL) || (collision & OOB_LEFT)) {
+				if(blockMovedAuto) {
+					currentBlock.x++;
+					blockPlaced = 1;
+				}
+			}
+		
+			if(collision != NO_COLL) {
+				// Undo moves if they would result in a collision
+				if(blockPlaced && firstMoveOfNewBlock) {
+					// Game over
+					tetrisGameOver();
+					return;
+				}
+			
+				if(!(collision & OOB_RIGHT)) {
+					if(blockMovedUser) {
+						switch(dir) {
+							case UP: {
+								currentBlock.rotation--;
+								currentBlock.rotation %= 4;
+								break;
+							}
+							case LEFT: {
+								currentBlock.y++;
+								break;
+							}
+							case RIGHT: {
+								currentBlock.y--;
+								break;
+							}
+						}
+					}
+			
+					restoreOldPlayfield();
+				}
+			}
+		
+			if(blockMovedAuto == 1) firstMoveOfNewBlock = 0;
+	
+			if(blockPlaced) {
+				fallInterval = oldFallInterval;
+				quickDropActive = 0;
+				placeCurrentBlock();
+				removeFullLines();
+				generateNewBlock();
+			}
+		
+			outputPlayfield();
+			blockMovedAuto = 0;
+			blockMovedUser = 0;
+		}
 	}
 }

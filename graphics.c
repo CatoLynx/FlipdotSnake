@@ -7,19 +7,9 @@
 
 #include "graphics.h"
 #include "flipdot.h"
+#include "font_5x3.h"
 
-const uint8_t FONT[10*3] = {
-	0b11111, 0b10001, 0b11111, // 0
-	0b01001, 0b11111, 0b00001, // 1
-	0b10111, 0b10101, 0b11101, // 2
-	0b10001, 0b10101, 0b11111, // 3
-	0b11100, 0b00100, 0b11111, // 4
-	0b11101, 0b10101, 0b10111, // 5
-	0b11111, 0b10101, 0b10111, // 6
-	0b10000, 0b10000, 0b11111, // 7
-	0b11111, 0b10101, 0b11111, // 8
-	0b11101, 0b10101, 0b11111  // 9
-};
+#include <string.h>
 
 t_collision setPixelAt(uint16_t* buf, int16_t x, int16_t y, uint8_t state) {
 	// Sets a pixel in a framebuffer to a value
@@ -191,63 +181,26 @@ t_collision drawBitmapRowMajor(uint16_t* buf, int16_t x0, int16_t y0, uint8_t wi
 	return coll;
 }
 
+t_collision drawString(uint16_t* buf, int16_t x0, int16_t y0, char* string, uint8_t state) {
+	t_collision coll = NO_COLL;
+	t_collision tmpColl = NO_COLL;
+	while(*string) {
+		uint8_t fontIndex = (*string - ' ') * 3;
+		tmpColl = drawBitmapColMajor(buf, x0, y0, 3, 5, &FONT_5x3[fontIndex], state, 0);
+		x0 += 4;
+		if(tmpColl != NO_COLL) coll = tmpColl;
+		string++;
+	}
+	return coll;
+}
+
 t_collision drawNumber(uint16_t* buf, int16_t x0, int16_t y0, uint32_t number, uint8_t state) {
 	t_collision coll = NO_COLL;
 	t_collision tmpColl = NO_COLL;
 	uint8_t forceDraw = 0;
-	if(forceDraw || number >= 10000000) {
-		tmpColl = drawNumber(buf, x0, y0, number/10000000, state);
-		if(tmpColl != NO_COLL) coll = tmpColl;
-		number %= 10000000;
-		x0 += 4;
-		forceDraw = 1;
-	}
-	if(forceDraw || number >= 1000000) {
-		tmpColl = drawNumber(buf, x0, y0, number/1000000, state);
-		if(tmpColl != NO_COLL) coll = tmpColl;
-		number %= 1000000;
-		x0 += 4;
-		forceDraw = 1;
-	}
-	if(forceDraw || number >= 100000) {
-		tmpColl = drawNumber(buf, x0, y0, number/100000, state);
-		if(tmpColl != NO_COLL) coll = tmpColl;
-		number %= 100000;
-		x0 += 4;
-		forceDraw = 1;
-	}
-	if(forceDraw || number >= 10000) {
-		tmpColl = drawNumber(buf, x0, y0, number/10000, state);
-		if(tmpColl != NO_COLL) coll = tmpColl;
-		number %= 10000;
-		x0 += 4;
-		forceDraw = 1;
-	}
-	if(forceDraw || number >= 1000) {
-		tmpColl = drawNumber(buf, x0, y0, number/1000, state);
-		if(tmpColl != NO_COLL) coll = tmpColl;
-		number %= 1000;
-		x0 += 4;
-		forceDraw = 1;
-	}
-	if(forceDraw || number >= 100) {
-		tmpColl = drawNumber(buf, x0, y0, number/100, state);
-		if(tmpColl != NO_COLL) coll = tmpColl;
-		number %= 100;
-		x0 += 4;
-		forceDraw = 1;
-	}
-	if(forceDraw || number >= 10) {
-		tmpColl = drawNumber(buf, x0, y0, number/10, state);
-		if(tmpColl != NO_COLL) coll = tmpColl;
-		number %= 10;
-		x0 += 4;
-		forceDraw = 1;
-	}
-	uint8_t fontIndex = number * 3;
-	tmpColl = drawBitmapColMajor(buf, x0, y0, 3, 5, &FONT[fontIndex], state, 0);
-	if(tmpColl != NO_COLL) coll = tmpColl;
-	return coll;
+	uint8_t strBuf[8];
+	snprintf(strBuf, 8, "%7lu", number);
+	return drawString(buf, x0, y0, strBuf, state);
 }
 
 uint8_t isPointOnLine(uint8_t x, uint8_t y, uint8_t x0, uint8_t y0, uint8_t x1, uint8_t y1) {

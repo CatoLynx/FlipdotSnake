@@ -141,6 +141,12 @@
     </ToolchainSettings>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="font_5x3.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="font_5x3.h">
+      <SubType>compile</SubType>
+    </Compile>
     <Compile Include="game.h">
       <SubType>compile</SubType>
     </Compile>
@@ -151,6 +157,12 @@
       <SubType>compile</SubType>
     </Compile>
     <Compile Include="game.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="gameSelect.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="gameSelect.h">
       <SubType>compile</SubType>
     </Compile>
     <Compile Include="graphics.c">

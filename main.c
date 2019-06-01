@@ -12,20 +12,11 @@
 #include "main.h"
 #include "game.h"
 #include "flipdot.h"
+#include "snake.h"
+#include "tetris.h"
+#include "gameSelect.h"
 
 volatile uint64_t sysTicks = 0;
-
-#ifdef SNAKE
-#include "snake.h"
-extern t_direction curDirection, lastDirection;
-extern int16_t curXPos, curYPos;
-extern uint16_t curSnakeLength;
-#endif
-
-#ifdef TETRIS
-#include "tetris.h"
-#endif
-
 
 ISR(TIMER0_COMPA_vect) {
 	// Systick interrupt
@@ -62,43 +53,37 @@ int16_t main(void)
 	
 	asm("sei");
 	
-	#ifdef SNAKE
-	t_collisionType collisionType = NONE;
 	clearMatrix();
-	#endif
 	
-	#ifdef TETRIS
-	clearMatrix();
-	generateNewBlock();
-	#endif
+	switch(selectedGame) {
+		case SNAKE: {
+			snakeInit();
+			break;
+		}
+		case TETRIS: {
+			tetrisInit();
+			break;
+		}
+	}
 	
 	while(1) {
-		#ifdef SNAKE
-		clearPlayfield();
-		resetSnake();
-		clearPlayfield();
-		renderSnake();
-		outputSnakePlayfield();
-		while(getDPad() != INVALID);
-		while(getDPad() == INVALID);
-	
-		while (1) 
-		{
-			clearPlayfield();
-			generateObjects();
-			collisionType = advanceSnake();
-			if(collisionType != NONE) {
-				endGame();
-				while(getDPad() == INVALID);
+		switch(selectedGame) {
+			case SELECT_GAME: {
+				gameSelectLoop();
 				break;
 			}
-			renderSnake();
-			outputSnakePlayfield();
+			case SNAKE: {
+				snakeLoop();
+				selectedGame = SELECT_GAME;
+				break;
+			}
+			case TETRIS: {
+				tetrisLoop();
+				selectedGame = SELECT_GAME;
+				break;
+			}
 		}
-		#endif
-		
-		#ifdef TETRIS
-		tetrisLoop();
-		#endif
+		while(getDPad() == INVALID);
+		while(getDPad() != INVALID);
 	}
 }
