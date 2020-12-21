@@ -9,21 +9,22 @@
 #include <stdint.h>
 
 // MATRIX CONFIGURATION
-uint8_t PANEL_LINES[1] = {0};
+uint8_t PANEL_LINES[5] = {1, 2, 3, 0, 4};
 
 uint8_t hasHalfPanelOffset(uint8_t colIndex) {
   /*
    * Determine if the given column index belongs to a panel which was preceded by a 14-col half panel.
    */
 
-  return 0;
+  // In the 126x16 matrix, the last panel (index 4; first one from the end) is a short one
+  return (colIndex / PANEL_WIDTH) >= 4;
 }
 
 // The associations between address and actually selected matrix row are not 1:1, so we need to use a lookup table
 // The values in this array represent the address needed to drive the row corresponding to the array index
 uint8_t ROW_TABLE_BLACK[8] = {10, 11, 8, 9, 14, 15, 12, 13}; // Black = lowside
 uint8_t ROW_TABLE_YELLOW[8] = {7, 6, 5, 4, 3, 1, 2, 0}; // Yellow = highside
-uint8_t E_LINES[5] = {E2, E2, E3, E4, E5}; // E1 is usually first but it's placed on MOSI and prevents ISP from working, so for a single panel I jumpered it to use E2
+uint8_t E_LINES[5] = {E1, E2, E3, E4, E5}; // E1 is usually first but it's placed on MOSI and prevents ISP from working, so for a single panel I jumpered it to use E2
 
 uint8_t matrixClean = 0;
 uint8_t pixelInverting = 0;
@@ -58,11 +59,11 @@ void selectColumn(uint8_t colIndex) {
   // In the case of a matrix with a 14-col panel at the end instead of a 28-col one, we need to remember that our panel index is off by half a panel, so flip the MSB
   uint8_t halfPanelOffset = hasHalfPanelOffset(colIndex);
 
-  // Additionally, the address needs to be reversed because of how the panels are connected
-  colIndex = MATRIX_WIDTH - colIndex - 1;
-
   // Since addresses start from the beginning in every panel, we need to wrap around after reaching the end of a panel
   uint8_t address = colIndex % PANEL_WIDTH;
+
+  // Additionally, the address needs to be reversed because of how the panels are connected
+  address = PANEL_WIDTH - address - 1;
 
   // A quirk of the FP2800 chip used to drive the columns is that addresses divisible by 8 are not used, so we need to skip those
   address += (address / 7) + 1;

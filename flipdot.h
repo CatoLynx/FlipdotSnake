@@ -17,10 +17,10 @@
  * MATRIX CONFIGURATION
  */
 
-#define MATRIX_WIDTH 28
+#define MATRIX_WIDTH 126
 #define MATRIX_HEIGHT 16
-#define MIN_ROW 1
-#define MAX_ROW 13
+#define MIN_ROW 0
+#define MAX_ROW 15
 #define VIEWPORT_HEIGHT (MAX_ROW - MIN_ROW + 1)
 #define PANEL_WIDTH 28
 
